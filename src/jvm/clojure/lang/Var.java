@@ -16,8 +16,12 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandle;
+
 
 public final class Var extends ARef implements IFn, IRef, Settable, Serializable{
+
 
 static class TBox{
 
@@ -715,7 +719,6 @@ static IFn dissoc = new AFn() {
     }
 };
 
-
 /***
  Note - serialization only supports reconnecting the Var identity on the deserializing end
  Neither the value in the var nor any of its properties are serialized
@@ -738,4 +741,14 @@ private static class Serialized implements Serializable{
 private Object writeReplace() throws ObjectStreamException{
     return new Serialized(ns.getName(), sym);
 }
+
+static {
+	try {
+	       	ROOT = MethodHandles.lookup().findGetter(Var.class, "root", Object.class);
+	} catch (Exception e) {
+            throw new RuntimeException("Failed to boostrap Var MH");
+	}
+}
+
+static final MethodHandle ROOT;
 }
