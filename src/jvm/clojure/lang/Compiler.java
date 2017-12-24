@@ -345,7 +345,50 @@ static final public Var CLEAR_SITES = Var.create(null).setDynamic();
 
 private class Recur {};
 static final public Class RECUR_CLASS = Recur.class;
-    
+
+static class CljClassWriter extends ClassWriter {
+
+  String curr;
+
+  public CljClassWriter (final String curr,  final int flags) {
+    super (flags);
+    this.curr = curr;
+  }
+
+  protected String getCommonSuperClass(final String type1, final String type2) {
+
+    if (type1 == curr || type2 == curr) {
+      if (type1 == type2)
+        return type1;
+      else
+        return "java/lang/Object";
+    }
+
+
+    Class<?> c, d;
+    try {
+      c = RT.classForName(type1.replace('/', '.'), false, (ClassLoader)LOADER.deref());
+      d = RT.classForName(type2.replace('/', '.'), false, (ClassLoader)LOADER.deref());
+    } catch (Exception e) {
+      throw new RuntimeException(e.toString());
+    }
+    if (c.isAssignableFrom(d)) {
+      return type1;
+    }
+    if (d.isAssignableFrom(c)) {
+      return type2;
+    }
+    if (c.isInterface() || d.isInterface()) {
+      return "java/lang/Object";
+    } else {
+      do {
+        c = c.getSuperclass();
+      } while (!c.isAssignableFrom(d));
+      return c.getName().replace('.', '/');
+    }
+  }
+}
+
 interface Expr{
 	Object eval() ;
 
@@ -4295,12 +4338,12 @@ static public class ObjExpr implements Expr{
 		//with name current_ns.defname[$letname]+
 		//anonymous fns get names fn__id
 		//derived from AFn/RestFn
-		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        ClassWriter cw = new CljClassWriter(internalName, ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES);
 //		ClassWriter cw = new ClassWriter(0);
 		ClassVisitor cv = cw;
 //		ClassVisitor cv = new TraceClassVisitor(new CheckClassAdapter(cw), new PrintWriter(System.out));
 		//ClassVisitor cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
-		cv.visit(V1_5, ACC_PUBLIC + ACC_SUPER + ACC_FINAL, internalName, null,superName,interfaceNames);
+		cv.visit(V9, ACC_PUBLIC + ACC_SUPER + ACC_FINAL, internalName, null,superName,interfaceNames);
 //		         superName != null ? superName :
 //		         (isVariadic() ? "clojure/lang/RestFn" : "clojure/lang/AFunction"), null);
 		String source = (String) SOURCE.deref();
@@ -4576,7 +4619,7 @@ static public class ObjExpr implements Expr{
         for(int i = 0; i < constants.count(); i++)
             {
             if(usedConstants.contains(i))
-                cv.visitField(ACC_PUBLIC + ACC_FINAL
+                cv.visitField(ACC_PUBLIC
                           + ACC_STATIC, constantName(i), constantType(i).getDescriptor(),
                           null, null);
             }
@@ -4584,8 +4627,7 @@ static public class ObjExpr implements Expr{
         //static fields for lookup sites
         for(int i = 0; i < keywordCallsites.count(); i++)
             {
-            cv.visitField(ACC_FINAL
-                          + ACC_STATIC, siteNameStatic(i), KEYWORD_LOOKUPSITE_TYPE.getDescriptor(),
+            cv.visitField(ACC_STATIC, siteNameStatic(i), KEYWORD_LOOKUPSITE_TYPE.getDescriptor(),
                           null, null);
             cv.visitField(ACC_STATIC, thunkNameStatic(i), ILOOKUP_THUNK_TYPE.getDescriptor(),
                           null, null);
@@ -7655,9 +7697,9 @@ public static Object compile(Reader rdr, String sourcePath, String sourceName) t
 		                  + RT.LOADER_SUFFIX;
 
 		objx.objtype = Type.getObjectType(objx.internalName);
-		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+		ClassWriter cw = new CljClassWriter(objx.internalName, ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES);
 		ClassVisitor cv = cw;
-		cv.visit(V1_5, ACC_PUBLIC + ACC_SUPER, objx.internalName, null, "java/lang/Object", null);
+		cv.visit(V9, ACC_PUBLIC + ACC_SUPER, objx.internalName, null, "java/lang/Object", null);
 
 		//static load method
 		GeneratorAdapter gen = new GeneratorAdapter(ACC_PUBLIC + ACC_STATIC,
@@ -7685,7 +7727,7 @@ public static Object compile(Reader rdr, String sourcePath, String sourceName) t
 		for(int i = 0; i < objx.constants.count(); i++)
 			{
             if(objx.usedConstants.contains(i))
-			    cv.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, objx.constantName(i), objx.constantType(i).getDescriptor(),
+			    cv.visitField(ACC_PUBLIC + ACC_STATIC, objx.constantName(i), objx.constantType(i).getDescriptor(),
 			              null, null);
 			}
 
@@ -7975,9 +8017,9 @@ static public class NewInstanceExpr extends ObjExpr{
 	 * Unmunge the name (using a magic prefix) on any code gen for classes
 	 */
 	static Class compileStub(String superName, NewInstanceExpr ret, String[] interfaceNames, Object frm){
-		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        ClassWriter cw = new CljClassWriter(ret.internalName, ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES);
 		ClassVisitor cv = cw;
-		cv.visit(V1_5, ACC_PUBLIC + ACC_SUPER, COMPILE_STUB_PREFIX + "/" + ret.internalName,
+		cv.visit(V9, ACC_PUBLIC + ACC_SUPER, COMPILE_STUB_PREFIX + "/" + ret.internalName,
 		         null,superName,interfaceNames);
 
 		//instance fields for closed-overs
