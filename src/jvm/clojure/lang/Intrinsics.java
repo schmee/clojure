@@ -12,7 +12,7 @@
 
 package clojure.lang;
 
-import clojure.asm.Opcodes;
+import org.objectweb.asm.Opcodes;
 
 public class Intrinsics implements Opcodes{
 private static Object[] oa(Object... arr){

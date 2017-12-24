@@ -15,10 +15,6 @@
       <filtered>true</filtered>
     </fileSet>
     <fileSet>
-      <directory>target/classes/clojure/asm</directory>
-      <outputDirectory>clojure/asm</outputDirectory>
-    </fileSet>
-    <fileSet>
       <directory>target/classes/clojure/lang</directory>
       <outputDirectory>clojure/lang</outputDirectory>
     </fileSet>
