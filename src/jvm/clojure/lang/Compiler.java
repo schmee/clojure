@@ -1500,7 +1500,6 @@ public class Compiler implements Opcodes {
                 gen.visitLineNumber(line, gen.mark());
                 if (context == C.RETURN) {
                     ObjMethod method = (ObjMethod) METHOD.deref();
-                    method.emitClearLocals(gen);
                 }
                 Method m = new Method(methodName, Type.getReturnType(method), Type.getArgumentTypes(method));
                 if (method.getDeclaringClass().isInterface())
@@ -1516,7 +1515,6 @@ public class Compiler implements Opcodes {
                 gen.visitLineNumber(line, gen.mark());
                 if (context == C.RETURN) {
                     ObjMethod method = (ObjMethod) METHOD.deref();
-                    method.emitClearLocals(gen);
                 }
                 gen.invokeStatic(REFLECTOR_TYPE, invokeInstanceMethodMethod);
             }
@@ -1639,7 +1637,6 @@ public class Compiler implements Opcodes {
                 MethodExpr.emitTypedArgs(objx, gen, method.getParameterTypes(), args);
                 if (context == C.RETURN) {
                     ObjMethod method = (ObjMethod) METHOD.deref();
-                    method.emitClearLocals(gen);
                 }
                 Object[] predOps = (Object[]) RT.get(Intrinsics.preds, method.toString());
                 for (int i = 0; i < predOps.length - 1; i++)
@@ -1656,7 +1653,6 @@ public class Compiler implements Opcodes {
                 // Type type = Type.getObjectType(className.replace('.', '/'));
                 if (context == C.RETURN) {
                     ObjMethod method = (ObjMethod) METHOD.deref();
-                    method.emitClearLocals(gen);
                 }
                 Object ops = RT.get(Intrinsics.ops, method.toString());
                 if (ops != null) {
@@ -1706,7 +1702,6 @@ public class Compiler implements Opcodes {
                 gen.visitLineNumber(line, gen.mark());
                 if (context == C.RETURN) {
                     ObjMethod method = (ObjMethod) METHOD.deref();
-                    method.emitClearLocals(gen);
                 }
                 gen.invokeStatic(REFLECTOR_TYPE, invokeStaticMethodMethod);
                 if (context == C.STATEMENT)
@@ -3468,7 +3463,6 @@ public class Compiler implements Opcodes {
                 MethodExpr.emitTypedArgs(objx, gen, onMethod.getParameterTypes(), RT.subvec(args, 1, args.count()));
                 if (context == C.RETURN) {
                     ObjMethod method = (ObjMethod) METHOD.deref();
-                    method.emitClearLocals(gen);
                 }
                 Method m = new Method(onMethod.getName(), Type.getReturnType(onMethod),
                         Type.getArgumentTypes(onMethod));
@@ -4209,15 +4203,15 @@ public class Compiler implements Opcodes {
              * Method.getMethod("clojure.lang.Var var(String,String)")); clinitgen.dup();
              * clinitgen.invokeVirtual(VAR_TYPE,Method.getMethod("boolean hasRoot()"));
              * clinitgen.ifZCmp(GeneratorAdapter.EQ,skipLabel);
-             * 
+             *
              * clinitgen.invokeVirtual(VAR_TYPE,Method.getMethod("Object getRoot()"));
              * clinitgen.dup(); clinitgen.instanceOf(AFUNCTION_TYPE);
              * clinitgen.ifZCmp(GeneratorAdapter.EQ,skipLabel);
              * clinitgen.checkCast(IFN_TYPE); clinitgen.putStatic(objtype,
              * varCallsiteName(i), IFN_TYPE); clinitgen.goTo(endLabel);
-             * 
+             *
              * clinitgen.mark(skipLabel); clinitgen.pop();
-             * 
+             *
              * clinitgen.mark(endLabel); }
              */
 
@@ -5158,33 +5152,6 @@ public class Compiler implements Opcodes {
             }
             return ARG_TYPES[numParams()];
         }
-
-        void emitClearLocals(GeneratorAdapter gen) {
-            // for(int i = 1; i < numParams() + 1; i++)
-            // {
-            // if(!localsUsedInCatchFinally.contains(i))
-            // {
-            // gen.visitInsn(Opcodes.ACONST_NULL);
-            // gen.visitVarInsn(OBJECT_TYPE.getOpcode(Opcodes.ISTORE), i);
-            // }
-            // }
-            // for(int i = numParams() + 1; i < maxLocal + 1; i++)
-            // {
-            // if(!localsUsedInCatchFinally.contains(i))
-            // {
-            // LocalBinding b = (LocalBinding) RT.get(indexlocals, i);
-            // if(b == null || maybePrimitiveType(b.init) == null)
-            // {
-            // gen.visitInsn(Opcodes.ACONST_NULL);
-            // gen.visitVarInsn(OBJECT_TYPE.getOpcode(Opcodes.ISTORE), i);
-            // }
-            // }
-            // }
-            // if(((FnExpr)objx).onceOnly)
-            // {
-            // objx.emitClearCloses(gen);
-            // }
-        }
     }
 
     abstract public static class ObjMethod {
@@ -5303,37 +5270,6 @@ public class Compiler implements Opcodes {
             gen.returnValue();
             // gen.visitMaxs(1, 1);
             gen.endMethod();
-        }
-
-        void emitClearLocals(GeneratorAdapter gen) {
-        }
-
-        void emitClearLocalsOld(GeneratorAdapter gen) {
-            for (int i = 0; i < argLocals.count(); i++) {
-                LocalBinding lb = (LocalBinding) argLocals.nth(i);
-                if (!localsUsedInCatchFinally.contains(lb.idx) && lb.getPrimitiveType() == null) {
-                    gen.visitInsn(Opcodes.ACONST_NULL);
-                    gen.storeArg(lb.idx - 1);
-                }
-
-            }
-            // for(int i = 1; i < numParams() + 1; i++)
-            // {
-            // if(!localsUsedInCatchFinally.contains(i))
-            // {
-            // gen.visitInsn(Opcodes.ACONST_NULL);
-            // gen.visitVarInsn(OBJECT_TYPE.getOpcode(Opcodes.ISTORE), i);
-            // }
-            // }
-            for (int i = numParams() + 1; i < maxLocal + 1; i++) {
-                if (!localsUsedInCatchFinally.contains(i)) {
-                    LocalBinding b = (LocalBinding) RT.get(indexlocals, i);
-                    if (b == null || maybePrimitiveType(b.init) == null) {
-                        gen.visitInsn(Opcodes.ACONST_NULL);
-                        gen.visitVarInsn(OBJECT_TYPE.getOpcode(Opcodes.ISTORE), i);
-                    }
-                }
-            }
         }
 
         void emitClearThis(GeneratorAdapter gen) {
