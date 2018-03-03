@@ -80,18 +80,14 @@ public class Compiler implements Opcodes {
     static final Symbol NS = Symbol.intern("ns");
     static final Symbol IN_NS = Symbol.intern("in-ns");
 
-
     static final public IPersistentMap specials = PersistentHashMap.create(DEF, new DefExpr.Parser(), LOOP,
             new LetExpr.Parser(), RECUR, new RecurExpr.Parser(), IF, new IfExpr.Parser(), CASE, new CaseExpr.Parser(),
             LET, new LetExpr.Parser(), LETFN, new LetFnExpr.Parser(), DO, new BodyExpr.Parser(), FN, null, QUOTE,
             new ConstantExpr.Parser(), THE_VAR, new TheVarExpr.Parser(), IMPORT, new ImportExpr.Parser(), DOT,
             new HostExpr.Parser(), ASSIGN, new AssignExpr.Parser(), DEFTYPE, new NewInstanceExpr.DeftypeParser(), REIFY,
-            new NewInstanceExpr.ReifyParser(),
-            TRY, new TryExpr.Parser(), THROW, new ThrowExpr.Parser(), MONITOR_ENTER, new MonitorEnterExpr.Parser(),
-            MONITOR_EXIT, new MonitorExitExpr.Parser(),
-            CATCH, null, FINALLY, null,
-            NEW, new NewExpr.Parser(),
-            _AMP_, null);
+            new NewInstanceExpr.ReifyParser(), TRY, new TryExpr.Parser(), THROW, new ThrowExpr.Parser(), MONITOR_ENTER,
+            new MonitorEnterExpr.Parser(), MONITOR_EXIT, new MonitorExitExpr.Parser(), CATCH, null, FINALLY, null, NEW,
+            new NewExpr.Parser(), _AMP_, null);
 
     private static final int MAX_POSITIONAL_ARITY = 20;
     private static final Type OBJECT_TYPE;
@@ -2141,10 +2137,8 @@ public class Compiler implements Opcodes {
         // presumes matching lengths
         Boolean better = false;
         for (int i = 0; i < c1.length; i++) {
-            if (c1[i] != c2[i])
-            {
-                if (!c1[i].isPrimitive() && c2[i].isPrimitive()
-                        || c2[i].isAssignableFrom(c1[i]))
+            if (c1[i] != c2[i]) {
+                if (!c1[i].isPrimitive() && c2[i].isPrimitive() || c2[i].isAssignableFrom(c1[i]))
                     better = true;
                 else
                     return false;
@@ -2460,11 +2454,11 @@ public class Compiler implements Opcodes {
         }
     }
 
-    static final public IPersistentMap CHAR_MAP = PersistentHashMap.create('-', "_",
-            ':', "_COLON_", '+', "_PLUS_", '>', "_GT_", '<', "_LT_", '=', "_EQ_", '~', "_TILDE_", '!', "_BANG_", '@',
-            "_CIRCA_", '#', "_SHARP_", '\'', "_SINGLEQUOTE_", '"', "_DOUBLEQUOTE_", '%', "_PERCENT_", '^', "_CARET_",
-            '&', "_AMPERSAND_", '*', "_STAR_", '|', "_BAR_", '{', "_LBRACE_", '}', "_RBRACE_", '[', "_LBRACK_", ']',
-            "_RBRACK_", '/', "_SLASH_", '\\', "_BSLASH_", '?', "_QMARK_");
+    static final public IPersistentMap CHAR_MAP = PersistentHashMap.create('-', "_", ':', "_COLON_", '+', "_PLUS_", '>',
+            "_GT_", '<', "_LT_", '=', "_EQ_", '~', "_TILDE_", '!', "_BANG_", '@', "_CIRCA_", '#', "_SHARP_", '\'',
+            "_SINGLEQUOTE_", '"', "_DOUBLEQUOTE_", '%', "_PERCENT_", '^', "_CARET_", '&', "_AMPERSAND_", '*', "_STAR_",
+            '|', "_BAR_", '{', "_LBRACE_", '}', "_RBRACE_", '[', "_LBRACK_", ']', "_RBRACK_", '/', "_SLASH_", '\\',
+            "_BSLASH_", '?', "_QMARK_");
 
     static final public IPersistentMap DEMUNGE_MAP;
     static final public Pattern DEMUNGE_PATTERN;
@@ -4056,8 +4050,7 @@ public class Compiler implements Opcodes {
                 gen.push(((Keyword) value).sym.ns);
                 gen.push(((Keyword) value).sym.name);
                 gen.invokeStatic(RT_TYPE, Method.getMethod("clojure.lang.Keyword keyword(String,String)"));
-            }
-            else if (value instanceof Var) {
+            } else if (value instanceof Var) {
                 Var var = (Var) value;
                 gen.push(var.ns.name.toString());
                 gen.push(var.sym.toString());
@@ -5871,8 +5864,7 @@ public class Compiler implements Opcodes {
 
     public static Object eval(Object form, boolean freshLoader) {
         boolean createdLoader = false;
-        if (true)
-        {
+        if (true) {
             Var.pushThreadBindings(RT.map(LOADER, RT.makeClassLoader()));
             createdLoader = true;
         }
@@ -6367,8 +6359,7 @@ public class Compiler implements Opcodes {
                 LINE_AFTER, pushbackReader.getLineNumber(), COLUMN_AFTER, pushbackReader.getColumnNumber(), CONSTANTS,
                 PersistentVector.EMPTY, CONSTANT_IDS, new IdentityHashMap(), KEYWORDS, PersistentHashMap.EMPTY, VARS,
                 PersistentHashMap.EMPTY, RT.UNCHECKED_MATH, RT.UNCHECKED_MATH.deref(), RT.WARN_ON_REFLECTION,
-                RT.WARN_ON_REFLECTION.deref(), RT.DATA_READERS, RT.DATA_READERS.deref()
-        ));
+                RT.WARN_ON_REFLECTION.deref(), RT.DATA_READERS, RT.DATA_READERS.deref()));
 
         try {
             // generate loader class
@@ -7014,8 +7005,7 @@ public class Compiler implements Opcodes {
                             pclasses = m.getParameterTypes();
                         }
                     }
-                }
-                else
+                } else
                     throw new IllegalArgumentException("Can't define method not in interfaces: " + name.name);
 
                 // else
