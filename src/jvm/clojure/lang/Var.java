@@ -14,6 +14,8 @@ package clojure.lang;
 
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
@@ -738,4 +740,14 @@ private static class Serialized implements Serializable{
 private Object writeReplace() throws ObjectStreamException{
     return new Serialized(ns.getName(), sym);
 }
+
+static {
+  try {
+    ROOT = MethodHandles.lookup().findGetter(Var.class, "root", Object.class);
+  } catch (Exception e) {
+    throw new RuntimeException("Failed to boostrap Var MH");
+  }
+}
+
+static final MethodHandle ROOT;
 }

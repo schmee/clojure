@@ -3172,6 +3172,7 @@ public class Compiler implements Opcodes {
         }
 
         public Object eval() {
+            // System.out.println("fn -> EVAL");
             try {
                 IFn fn = (IFn) fexpr.eval();
                 PersistentVector argvs = PersistentVector.EMPTY;
@@ -3187,6 +3188,7 @@ public class Compiler implements Opcodes {
         }
 
         public void emit(C context, ObjExpr objx, GeneratorAdapter gen) {
+            // System.out.println("fn -> EMIT name: " + objx.name + " iname: " + objx.internalName + " thisName: " + objx.thisName);
             if (isProtocol) {
                 gen.visitLineNumber(line, gen.mark());
                 emitProto(context, objx, gen);
@@ -4351,8 +4353,10 @@ public class Compiler implements Opcodes {
         public void emitVarValue(GeneratorAdapter gen, Var v) {
             Integer i = (Integer) vars.valAt(v);
             if (!v.isDynamic()) {
-                emitConstant(gen, i);
-                gen.invokeVirtual(VAR_TYPE, varGetRawMethod);
+                // emitConstant(gen, i);
+                // gen.invokeVirtual(VAR_TYPE, varGetRawMethod);
+                Handle bsm = getIndyBsm("varExpr", String.class, String.class);
+                gen.invokeDynamic("varExpr", "()Ljava/lang/Object;", bsm, v.ns.name.name, v.sym.name);
             } else {
                 emitConstant(gen, i);
                 gen.invokeVirtual(VAR_TYPE, varGetMethod);
@@ -7501,5 +7505,11 @@ public class Compiler implements Opcodes {
 
     static IPersistentCollection emptyVarCallSites() {
         return PersistentHashSet.EMPTY;
+    }
+
+    static private Handle getIndyBsm(String name, Class... extraTypes) {
+      String descriptor = MethodType.methodType(CallSite.class, MethodHandles.Lookup.class, String.class, MethodType.class)
+        .appendParameterTypes(extraTypes).toMethodDescriptorString();
+      return new Handle(Opcodes.H_INVOKESTATIC, "clojure/lang/BootstrapMethods", name, descriptor, false);
     }
 }
