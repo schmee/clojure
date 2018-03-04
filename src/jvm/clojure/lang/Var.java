@@ -15,6 +15,8 @@ package clojure.lang;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandles.Lookup;
+import java.lang.invoke.MethodType;
 import java.lang.invoke.MethodHandle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -90,6 +92,11 @@ volatile boolean dynamic = false;
 transient final AtomicBoolean threadBound;
 public final Symbol sym;
 public final Namespace ns;
+// public boolean printAccess = false;
+
+// public boolean setPrintAccess() {
+//   return this.printAccess = true;
+// }
 
 //IPersistentMap _meta;
 
@@ -196,6 +203,8 @@ final public Object get(){
 }
 
 final public Object deref(){
+  // if (printAccess)
+  //   System.out.println("DEREF");
 	TBox b = getThreadBinding();
 	if(b != null)
 		return b.val;
@@ -256,6 +265,8 @@ public boolean isPublic(){
 }
 
 final public Object getRawRoot(){
+    // if (printAccess)
+    //   System.out.println("RAW");
 		return root;
 }
 
@@ -743,11 +754,16 @@ private Object writeReplace() throws ObjectStreamException{
 
 static {
   try {
-    ROOT = MethodHandles.lookup().findGetter(Var.class, "root", Object.class);
+    Lookup lookup = MethodHandles.lookup();
+    ROOT = lookup.findGetter(Var.class, "root", Object.class);
+    DEREF = lookup.findVirtual(Var.class, "deref", MethodType.methodType(Object.class));
+    THREAD_BOUND = lookup.findGetter(Var.class, "threadBound", AtomicBoolean.class);
   } catch (Exception e) {
     throw new RuntimeException("Failed to boostrap Var MH");
   }
 }
 
 static final MethodHandle ROOT;
+static final MethodHandle DEREF;
+static final MethodHandle THREAD_BOUND;
 }

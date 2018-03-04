@@ -4338,8 +4338,10 @@ public class Compiler implements Opcodes {
                 Handle bsm = getIndyBsm("varExpr", String.class, String.class);
                 gen.invokeDynamic("varExpr", "()Ljava/lang/Object;", bsm, v.ns.name.name, v.sym.name);
             } else {
-                emitConstant(gen, i);
-                gen.invokeVirtual(VAR_TYPE, varGetMethod);
+                // emitConstant(gen, i);
+                // gen.invokeVirtual(VAR_TYPE, varGetMethod);
+                Handle bsm = getIndyBsm("dynamicVarExpr", String.class, String.class);
+                gen.invokeDynamic("dynamicVarExpr", "()Ljava/lang/Object;", bsm, v.ns.name.name, v.sym.name);
             }
         }
 
