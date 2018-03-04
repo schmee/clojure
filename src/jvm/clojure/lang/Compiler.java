@@ -3912,26 +3912,6 @@ public class Compiler implements Opcodes {
             if (keywordCallsites.count() > 0)
                 emitKeywordCallsites(clinitgen);
 
-            /*
-             * for(int i=0;i<varCallsites.count();i++) { Label skipLabel =
-             * clinitgen.newLabel(); Label endLabel = clinitgen.newLabel(); Var var = (Var)
-             * varCallsites.nth(i); clinitgen.push(var.ns.name.toString());
-             * clinitgen.push(var.sym.toString()); clinitgen.invokeStatic(RT_TYPE,
-             * Method.getMethod("clojure.lang.Var var(String,String)")); clinitgen.dup();
-             * clinitgen.invokeVirtual(VAR_TYPE,Method.getMethod("boolean hasRoot()"));
-             * clinitgen.ifZCmp(GeneratorAdapter.EQ,skipLabel);
-             *
-             * clinitgen.invokeVirtual(VAR_TYPE,Method.getMethod("Object getRoot()"));
-             * clinitgen.dup(); clinitgen.instanceOf(AFUNCTION_TYPE);
-             * clinitgen.ifZCmp(GeneratorAdapter.EQ,skipLabel);
-             * clinitgen.checkCast(IFN_TYPE); clinitgen.putStatic(objtype,
-             * varCallsiteName(i), IFN_TYPE); clinitgen.goTo(endLabel);
-             *
-             * clinitgen.mark(skipLabel); clinitgen.pop();
-             *
-             * clinitgen.mark(endLabel); }
-             */
-
             if (isDeftype() && RT.booleanCast(RT.get(opts, loadNs))) {
                 String nsname = ((Symbol) RT.second(src)).getNamespace();
                 if (!nsname.equals("clojure.core")) {
