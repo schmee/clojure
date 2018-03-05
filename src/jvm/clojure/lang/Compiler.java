@@ -414,15 +414,6 @@ public class Compiler implements Opcodes {
             this.initProvided = initProvided;
         }
 
-        private boolean includesExplicitMetadata(MapExpr expr) {
-            for (int i = 0; i < expr.keyvals.count(); i += 2) {
-                Keyword k = ((KeywordExpr) expr.keyvals.nth(i)).k;
-                if ((k != RT.FILE_KEY) && (k != RT.DECLARED_KEY) && (k != RT.LINE_KEY) && (k != RT.COLUMN_KEY))
-                    return true;
-            }
-            return false;
-        }
-
         public Object eval() {
             try {
                 if (initProvided) {
@@ -5937,16 +5928,6 @@ public class Compiler implements Opcodes {
         return protocolCallsites.count() - 1;
     }
 
-    private static void registerVarCallsite(Var v) {
-        if (!VAR_CALLSITES.isBound())
-            throw new IllegalAccessError("VAR_CALLSITES is not bound");
-
-        IPersistentCollection varCallsites = (IPersistentCollection) VAR_CALLSITES.deref();
-
-        varCallsites = varCallsites.cons(v);
-        VAR_CALLSITES.set(varCallsites);
-    }
-
     static ISeq fwdPath(PathNode p1) {
         ISeq ret = null;
         for (; p1 != null; p1 = p1.parent)
@@ -7027,17 +7008,6 @@ public class Compiler implements Opcodes {
                 Map.Entry e = (Map.Entry) o;
                 java.lang.reflect.Method m = (java.lang.reflect.Method) e.getValue();
                 if (name.equals(m.getName()) && m.getParameterTypes().length == arity)
-                    ret.put(e.getKey(), e.getValue());
-            }
-            return ret;
-        }
-
-        private static Map findMethodsWithName(String name, Map mm) {
-            Map ret = new HashMap();
-            for (Object o : mm.entrySet()) {
-                Map.Entry e = (Map.Entry) o;
-                java.lang.reflect.Method m = (java.lang.reflect.Method) e.getValue();
-                if (name.equals(m.getName()))
                     ret.put(e.getKey(), e.getValue());
             }
             return ret;
