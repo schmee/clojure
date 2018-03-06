@@ -156,9 +156,6 @@ public class Compiler implements Opcodes {
     // vector<var>
     static final public Var PROTOCOL_CALLSITES = Var.create().setDynamic();
 
-    // set<var>
-    static final public Var VAR_CALLSITES = Var.create().setDynamic();
-
     // keyword->constid
     static final public Var KEYWORDS = Var.create().setDynamic();
 
@@ -3434,7 +3431,7 @@ public class Compiler implements Opcodes {
                 Var.pushThreadBindings(RT.mapUniqueKeys(CONSTANTS, PersistentVector.EMPTY, CONSTANT_IDS,
                         new IdentityHashMap(), KEYWORDS, PersistentHashMap.EMPTY, VARS, PersistentHashMap.EMPTY,
                         KEYWORD_CALLSITES, PersistentVector.EMPTY, PROTOCOL_CALLSITES, PersistentVector.EMPTY,
-                        VAR_CALLSITES, emptyVarCallSites(), NO_RECUR, null));
+                        NO_RECUR, null));
 
                 // arglist might be preceded by symbol naming this fn
                 if (nm != null) {
@@ -3503,7 +3500,6 @@ public class Compiler implements Opcodes {
                 fn.constants = (PersistentVector) CONSTANTS.deref();
                 fn.keywordCallsites = (IPersistentVector) KEYWORD_CALLSITES.deref();
                 fn.protocolCallsites = (IPersistentVector) PROTOCOL_CALLSITES.deref();
-                fn.varCallsites = (IPersistentSet) VAR_CALLSITES.deref();
 
                 fn.constantsID = RT.nextID();
             } finally {
@@ -6557,7 +6553,7 @@ public class Compiler implements Opcodes {
                 Var.pushThreadBindings(RT.mapUniqueKeys(CONSTANTS, PersistentVector.EMPTY, CONSTANT_IDS,
                         new IdentityHashMap(), KEYWORDS, PersistentHashMap.EMPTY, VARS, PersistentHashMap.EMPTY,
                         KEYWORD_CALLSITES, PersistentVector.EMPTY, PROTOCOL_CALLSITES, PersistentVector.EMPTY,
-                        VAR_CALLSITES, emptyVarCallSites(), NO_RECUR, null));
+                        NO_RECUR, null));
                 if (ret.isDeftype()) {
                     Var.pushThreadBindings(RT.mapUniqueKeys(METHOD, null, LOCAL_ENV, ret.fields, COMPILE_STUB_SYM,
                             Symbol.intern(null, tagName), COMPILE_STUB_CLASS, stub));
@@ -6581,7 +6577,6 @@ public class Compiler implements Opcodes {
                 ret.constantsID = RT.nextID();
                 ret.keywordCallsites = (IPersistentVector) KEYWORD_CALLSITES.deref();
                 ret.protocolCallsites = (IPersistentVector) PROTOCOL_CALLSITES.deref();
-                ret.varCallsites = (IPersistentSet) VAR_CALLSITES.deref();
             } finally {
                 if (ret.isDeftype())
                     Var.popThreadBindings();
