@@ -5835,16 +5835,8 @@ public class Compiler implements Opcodes {
     }
 
     public static Object eval(Object form) {
-        return eval(form, true);
-    }
-
-    public static Object eval(Object form, boolean freshLoader) {
-        boolean createdLoader = false;
-        if (true) {
-            Var.pushThreadBindings(RT.map(LOADER, RT.makeClassLoader()));
-            createdLoader = true;
-        }
         try {
+            Var.pushThreadBindings(RT.map(LOADER, RT.makeClassLoader()));
             Object line = lineDeref();
             Object column = columnDeref();
             if (RT.meta(form) != null && RT.meta(form).containsKey(RT.LINE_KEY))
@@ -5857,8 +5849,8 @@ public class Compiler implements Opcodes {
                 if (form instanceof ISeq && Util.equals(RT.first(form), DO)) {
                     ISeq s = RT.next(form);
                     for (; RT.next(s) != null; s = RT.next(s))
-                        eval(RT.first(s), false);
-                    return eval(RT.first(s), false);
+                        eval(RT.first(s));
+                    return eval(RT.first(s));
                 } else if ((form instanceof IType) || (form instanceof IPersistentCollection
                         && !(RT.first(form) instanceof Symbol && ((Symbol) RT.first(form)).name.startsWith("def")))) {
                     ObjExpr fexpr = (ObjExpr) analyze(C.EXPRESSION, RT.list(FN, PersistentVector.EMPTY, form),
@@ -5875,8 +5867,7 @@ public class Compiler implements Opcodes {
         }
 
         finally {
-            if (createdLoader)
-                Var.popThreadBindings();
+            Var.popThreadBindings();
         }
     }
 
@@ -6229,7 +6220,7 @@ public class Compiler implements Opcodes {
                 consumeWhitespaces(pushbackReader);
                 LINE_AFTER.set(pushbackReader.getLineNumber());
                 COLUMN_AFTER.set(pushbackReader.getColumnNumber());
-                ret = eval(r, false);
+                ret = eval(r);
                 LINE_BEFORE.set(pushbackReader.getLineNumber());
                 COLUMN_BEFORE.set(pushbackReader.getColumnNumber());
             }
