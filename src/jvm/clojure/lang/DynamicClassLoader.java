@@ -13,8 +13,6 @@
 package clojure.lang;
 
 import java.lang.ref.Reference;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.net.URLClassLoader;
 import java.net.URL;
@@ -22,7 +20,6 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 
 public class DynamicClassLoader extends URLClassLoader{
-HashMap<Integer, Object[]> constantVals = new HashMap<Integer, Object[]>();
 static ConcurrentHashMap<String, Reference<Class>>classCache =
         new ConcurrentHashMap<String, Reference<Class> >();
 
@@ -81,16 +78,7 @@ protected synchronized Class<?> loadClass(String name, boolean resolve) throws C
 	return c;
 }
 
-public void registerConstants(int id, Object[] val){
-	constantVals.put(id, val);
-}
-
-public Object[] getConstants(int id){
-	return constantVals.get(id);
-}
-
 public void addURL(URL url){
-	super.addURL(url);
+       super.addURL(url);
 }
-
 }
