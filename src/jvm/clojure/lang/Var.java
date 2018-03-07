@@ -17,8 +17,11 @@ import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.invoke.MethodType;
+import java.lang.invoke.MutableCallSite;
 import java.lang.invoke.MethodHandle;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import clojure.lang.BootstrapMethods.VarCallSite;
 
 
 public final class Var extends ARef implements IFn, IRef, Settable, Serializable{
@@ -86,12 +89,13 @@ static Keyword nameKey = Keyword.intern(null, "name");
 static Keyword nsKey = Keyword.intern(null, "ns");
 //static Keyword tagKey = Keyword.intern(null, "tag");
 
-volatile Object root;
+Object root;
 
 volatile boolean dynamic = false;
 transient final AtomicBoolean threadBound;
 public final Symbol sym;
 public final Namespace ns;
+private VarCallSite cs;
 // public boolean printAccess = false;
 
 // public boolean setPrintAccess() {
@@ -110,6 +114,10 @@ public static Object cloneThreadBindingFrame(){
 
 public static void resetThreadBindingFrame(Object frame){
 	dvals.set((Frame) frame);
+}
+
+public void setCallSite(VarCallSite cs) {
+  this.cs = cs;
 }
 
 public Var setDynamic(){
@@ -287,22 +295,25 @@ synchronized public void bindRoot(Object root){
 	validate(getValidator(), root);
 	Object oldroot = this.root;
 	this.root = root;
-	++rev;
-        alterMeta(dissoc, RT.list(macroKey));
-    notifyWatches(oldroot,this.root);
+  if (cs != null && root != oldroot)
+    cs.replaceRoot(root);
+  alterMeta(dissoc, RT.list(macroKey));
+  notifyWatches(oldroot,this.root);
 }
 
 synchronized void swapRoot(Object root){
 	validate(getValidator(), root);
 	Object oldroot = this.root;
 	this.root = root;
-	++rev;
-    notifyWatches(oldroot,root);
+  if (cs != null && root != oldroot)
+    cs.replaceRoot(root);
+  notifyWatches(oldroot,root);
 }
 
 synchronized public void unbindRoot(){
-	this.root = new Unbound(this);
-	++rev;
+  Object unbound = new Unbound(this);
+	this.root = unbound;
+  cs.replaceRoot(unbound);
 }
 
 synchronized public void commuteRoot(IFn fn) {
@@ -310,8 +321,9 @@ synchronized public void commuteRoot(IFn fn) {
 	validate(getValidator(), newRoot);
 	Object oldroot = root;
 	this.root = newRoot;
-	++rev;
-    notifyWatches(oldroot,newRoot);
+  if (cs != null && newRoot != oldroot)
+    cs.replaceRoot(newRoot);
+  notifyWatches(oldroot,newRoot);
 }
 
 synchronized public Object alterRoot(IFn fn, ISeq args) {
@@ -319,8 +331,9 @@ synchronized public Object alterRoot(IFn fn, ISeq args) {
 	validate(getValidator(), newRoot);
 	Object oldroot = root;
 	this.root = newRoot;
-	++rev;
-    notifyWatches(oldroot,newRoot);
+  if (cs != null && newRoot != oldroot)
+    cs.replaceRoot(newRoot);
+  notifyWatches(oldroot,newRoot);
 	return newRoot;
 }
 

@@ -3193,6 +3193,7 @@ public class Compiler implements Opcodes {
         }
 
         public void emitProto(C context, ObjExpr objx, GeneratorAdapter gen) {
+            Handle bsm = getIndyBsm("varExpr", String.class, String.class);
             Label onLabel = gen.newLabel();
             Label callLabel = gen.newLabel();
             Label endLabel = gen.newLabel();
@@ -3217,7 +3218,7 @@ public class Compiler implements Opcodes {
 
             gen.mark(callLabel); // target
             objx.emitVar(gen, v);
-            gen.invokeVirtual(VAR_TYPE, Method.getMethod("Object getRawRoot()")); // target, proto-fn
+            // gen.invokeVirtual(VAR_TYPE, Method.getMethod("Object getRawRoot()")); // target, proto-fn
             gen.swap();
             emitArgsAndCall(1, context, objx, gen);
             gen.goTo(endLabel);
@@ -3899,13 +3900,15 @@ public class Compiler implements Opcodes {
             if (keywordCallsites.count() > 0)
                 emitKeywordCallsites(clinitgen);
 
+            Handle bsm = getIndyBsm("dynamicVarExpr", String.class, String.class);
             if (isDeftype() && RT.booleanCast(RT.get(opts, loadNs))) {
                 String nsname = ((Symbol) RT.second(src)).getNamespace();
                 if (!nsname.equals("clojure.core")) {
-                    clinitgen.push("clojure.core");
-                    clinitgen.push("require");
-                    clinitgen.invokeStatic(RT_TYPE, Method.getMethod("clojure.lang.Var var(String,String)"));
-                    clinitgen.invokeVirtual(VAR_TYPE, Method.getMethod("Object getRawRoot()"));
+                    // clinitgen.push("clojure.core");
+                    // clinitgen.push("require");
+                    // clinitgen.invokeStatic(RT_TYPE, Method.getMethod("clojure.lang.Var var(String,String)"));
+                    // clinitgen.invokeVirtual(VAR_TYPE, Method.getMethod("Object getRawRoot()"));
+                    clinitgen.invokeDynamic("dynamicVarExpr", "()Ljava/lang/Object;", bsm, "clojure.core", "require");
                     clinitgen.checkCast(IFN_TYPE);
                     clinitgen.push(nsname);
                     clinitgen.invokeStatic(SYMBOL_TYPE, Method.getMethod("clojure.lang.Symbol create(String)"));
