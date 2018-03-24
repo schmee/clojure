@@ -1610,7 +1610,6 @@ static class InstanceMethodExpr extends MethodExpr{
 		else
 			{
 			target.emit(C.EXPRESSION, objx, gen);
-			gen.push(methodName);
 			emitArgsAsArray(args, objx, gen);
 			gen.visitLineNumber(line, gen.mark());
 			if(context == C.RETURN)
@@ -1618,7 +1617,9 @@ static class InstanceMethodExpr extends MethodExpr{
 				ObjMethod method = (ObjMethod) METHOD.deref();
 				method.emitClearLocals(gen);
 				}
-			gen.invokeStatic(REFLECTOR_TYPE, invokeInstanceMethodMethod);
+	    Handle bsm = getIndyBsm("reflectionCache", String.class);
+      String desc = MethodType.methodType(Object.class, Object.class, Object[].class).toMethodDescriptorString();
+      gen.invokeDynamic("reflectionCache", desc, bsm, methodName);
 			}
 		if(context == C.STATEMENT)
 			gen.pop();
