@@ -44,10 +44,10 @@ private static String noMethodReport(String methodName, Object target){
 	 return "No matching method found: " + methodName
 			+ (target==null?"":" for " + target.getClass());
 }
-static Object invokeMatchingMethod(String methodName, List methods, Object target, Object[] args)
+
+static Method findMatchingMethod(String methodName, List methods, Object target, Object[] args)
 		{
 	Method m = null;
-	Object[] boxedArgs = null;
 	if(methods.isEmpty())
 		{
 		throw new IllegalArgumentException(noMethodReport(methodName,target));
@@ -55,7 +55,6 @@ static Object invokeMatchingMethod(String methodName, List methods, Object targe
 	else if(methods.size() == 1)
 		{
 		m = (Method) methods.get(0);
-		boxedArgs = boxArgs(m.getParameterTypes(), args);
 		}
 	else //overloaded w/same arity
 		{
@@ -70,7 +69,6 @@ static Object invokeMatchingMethod(String methodName, List methods, Object targe
 				if(foundm == null || Compiler.subsumes(params, foundm.getParameterTypes()))
 					{
 					foundm = m;
-					boxedArgs = boxArgs(params, args);
 					}
 				}
 			}
@@ -88,6 +86,12 @@ static Object invokeMatchingMethod(String methodName, List methods, Object targe
 			throw new IllegalArgumentException("Can't call public method of non-public class: " +
 			                                    oldm.toString());
 		}
+
+  return m;
+}
+
+static Object invokeMethod(Method m, Object target, Object[] args) {
+  Object[] boxedArgs = boxArgs(m.getParameterTypes(), args);
 	try
 		{
 		return prepRet(m.getReturnType(), m.invoke(target, boxedArgs));
@@ -96,7 +100,11 @@ static Object invokeMatchingMethod(String methodName, List methods, Object targe
 		{
 		throw Util.sneakyThrow(getCauseOrElse(e));
 		}
+}
 
+static Object invokeMatchingMethod(String methodName, List methods, Object target, Object[] args) {
+  Method m = findMatchingMethod(methodName, methods, target, args);
+  return invokeMethod(m, target, args);
 }
 
 public static Method getAsMethodOfPublicBase(Class c, Method m){
@@ -404,7 +412,7 @@ static public List getMethods(Class c, int arity, String name, boolean getStatic
 
 	if(methods.isEmpty())
 		methods.addAll(bridgeMethods);
-	
+
 	if(!getStatics && c.isInterface())
 		{
 		allmethods = Object.class.getMethods();
