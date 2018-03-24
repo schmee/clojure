@@ -20,7 +20,7 @@ public class BootstrapMethods {
         private static final MethodType IPERSISTENT_MAP_TYPE = MethodType.methodType(IPersistentMap.class, Object[].class);
 
         private static MethodHandle mapCreator(MethodHandle src) {
-        	return src.asType(IPERSISTENT_MAP_TYPE).asVarargsCollector(Object[].class); 
+        	return src.asType(IPERSISTENT_MAP_TYPE).asVarargsCollector(Object[].class);
         }
 
     static {
@@ -77,4 +77,8 @@ public class BootstrapMethods {
 	    Keyword k = Keyword.intern(rep);
 	    return KeywordInvokeCallSite.create(k);
 	}
+
+    public static CallSite reflectionCache(MethodHandles.Lookup lk, String methodName, MethodType t, String reflectName) {
+	    return new ReflectionCallSite(reflectName);
+    }
 }
