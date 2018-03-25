@@ -81,4 +81,8 @@ public class BootstrapMethods {
     public static CallSite reflectionCache(MethodHandles.Lookup lk, String methodName, MethodType t, String reflectName) {
 	    return new ReflectionCallSite(reflectName);
     }
+
+    public static CallSite reflectionCacheStatic(MethodHandles.Lookup lk, String methodName, MethodType t, String reflectName) {
+	    return ReflectionCallSite.createStaticCache(reflectName);
+    }
 }

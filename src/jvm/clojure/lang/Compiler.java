@@ -1830,7 +1830,6 @@ static class StaticMethodExpr extends MethodExpr{
 			gen.visitLineNumber(line, gen.mark());
 			gen.push(c.getName());
 			gen.invokeStatic(RT_TYPE, forNameMethod);
-			gen.push(methodName);
 			emitArgsAsArray(args, objx, gen);
 			gen.visitLineNumber(line, gen.mark());
 			if(context == C.RETURN)
@@ -1838,7 +1837,9 @@ static class StaticMethodExpr extends MethodExpr{
 				ObjMethod method = (ObjMethod) METHOD.deref();
 				method.emitClearLocals(gen);
 				}
-			gen.invokeStatic(REFLECTOR_TYPE, invokeStaticMethodMethod);
+	    Handle bsm = getIndyBsm("reflectionCacheStatic", String.class);
+      String desc = MethodType.methodType(Object.class, Class.class, Object[].class).toMethodDescriptorString();
+      gen.invokeDynamic("reflectionCacheStatic", desc, bsm, methodName);
 			if(context == C.STATEMENT)
 				gen.pop();
 			}
