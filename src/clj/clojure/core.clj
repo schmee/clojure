@@ -811,6 +811,8 @@
 (defn not=
   "Same as (not (= obj1 obj2))"
   {:tag Boolean
+   :inline (fn [x y] `(not (. clojure.lang.Util equiv ~x ~y)))
+   :inline-arities #{2}
    :added "1.0"
    :static true}
   ([x] false)
