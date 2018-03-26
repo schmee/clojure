@@ -521,20 +521,6 @@
   {:added "1.9"}
   [x] (instance? Boolean x))
 
-(defn not
-  "Returns true if x is logical false, false otherwise."
-  {:tag Boolean
-   :added "1.0"
-   :static true}
-  [x] (if x false true))
-
-(defn some?
-  "Returns true if x is not nil, false otherwise."
-  {:tag Boolean
-   :added "1.6"
-   :static true}
-  [x] (not (nil? x)))
-
 (defn any?
   "Returns true given any argument."
   {:tag Boolean
@@ -735,6 +721,22 @@
        (cat (concat x y) zs))))
 
 ;;;;;;;;;;;;;;;;at this point all the support for syntax-quote exists;;;;;;;;;;;;;;;;;;;;;;
+
+(defn not
+  "Returns true if x is logical false, false otherwise."
+  {:tag Boolean
+   :added "1.0"
+   :inline (fn [x] `(not* ~x))
+   :static true}
+  [x] (not* x))
+
+(defn some?
+  "Returns true if x is not nil, false otherwise."
+  {:tag Boolean
+   :added "1.6"
+   :static true}
+  [x] (not (nil? x)))
+
 (defmacro delay
   "Takes a body of expressions and yields a Delay object that will
   invoke the body only the first time it is forced (with force or deref/@), and
@@ -819,8 +821,6 @@
   ([x y] (not (= x y)))
   ([x y & more]
    (not (apply = x y more))))
-
-
 
 (defn compare
   "Comparator. Returns a negative number, zero, or a positive number

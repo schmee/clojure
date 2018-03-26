@@ -45,6 +45,7 @@ static final Symbol LET = Symbol.intern("let*");
 static final Symbol LETFN = Symbol.intern("letfn*");
 static final Symbol DO = Symbol.intern("do");
 static final Symbol FN = Symbol.intern("fn*");
+static final Symbol NOT = Symbol.intern("not*");
 static final Symbol FNONCE = (Symbol) Symbol.intern("fn*").withMeta(RT.map(Keyword.intern(null, "once"), RT.T));
 static final Symbol QUOTE = Symbol.intern("quote");
 static final Symbol THE_VAR = Symbol.intern("var");
@@ -116,6 +117,7 @@ static final public IPersistentMap specials = PersistentHashMap.create(
 		THE_VAR, new TheVarExpr.Parser(),
 		IMPORT, new ImportExpr.Parser(),
 		DOT, new HostExpr.Parser(),
+		NOT, new NotExpr.Parser(),
 		ASSIGN, new AssignExpr.Parser(),
 		DEFTYPE, new NewInstanceExpr.DeftypeParser(),
 		REIFY, new NewInstanceExpr.ReifyParser(),
@@ -2078,6 +2080,42 @@ static class BooleanExpr extends LiteralExpr{
 final static BooleanExpr TRUE_EXPR = new BooleanExpr(true);
 final static BooleanExpr FALSE_EXPR = new BooleanExpr(false);
 
+static class NotExpr implements Expr {
+  public final Expr expr;
+  public final IfExpr ifExpr;
+
+	public NotExpr(Expr expr) {
+    this.expr = expr;
+    this.ifExpr = new IfExpr(lineDeref(), columnDeref(), expr, FALSE_EXPR, TRUE_EXPR);
+	}
+
+	public void emit(C context, ObjExpr objx, GeneratorAdapter gen){
+    ifExpr.emit(context, objx, gen);
+	} 
+
+	static class Parser implements IParser{
+		public Expr parse(C context, Object frm) {
+			ISeq form = (ISeq) frm;
+			if(RT.length(form) != 2)
+				throw new IllegalArgumentException("Malformed not expression");
+			Expr target = analyze(C.EXPRESSION, RT.second(form));
+			return new NotExpr(target);
+		}
+	}
+
+	public Object eval() {
+		return ifExpr.eval();
+	}
+
+	public boolean hasJavaClass() {
+		return ifExpr.hasJavaClass();
+	}
+
+	public Class getJavaClass() {
+		return ifExpr.getJavaClass();
+	}
+}
+
 static class StringExpr extends LiteralExpr{
 	public final String str;
 
@@ -2709,9 +2747,16 @@ public static class IfExpr implements Expr, MaybePrimitiveExpr{
 
 
 	public IfExpr(int line, int column, Expr testExpr, Expr thenExpr, Expr elseExpr){
-		this.testExpr = testExpr;
-		this.thenExpr = thenExpr;
-		this.elseExpr = elseExpr;
+    if (testExpr instanceof NotExpr) {
+      NotExpr ne = (NotExpr) testExpr;
+      this.testExpr = ne.expr;
+      this.thenExpr = elseExpr;
+      this.elseExpr = thenExpr;
+    } else {
+      this.testExpr = testExpr;
+      this.thenExpr = thenExpr;
+      this.elseExpr = elseExpr;
+    }
 		this.line = line;
 		this.column = column;
 	}
@@ -2737,7 +2782,6 @@ public static class IfExpr implements Expr, MaybePrimitiveExpr{
 		Label endLabel = gen.newLabel();
 
 		gen.visitLineNumber(line, gen.mark());
-
 		if(testExpr instanceof StaticMethodExpr && ((StaticMethodExpr)testExpr).canEmitIntrinsicPredicate())
 			{
 			((StaticMethodExpr) testExpr).emitIntrinsicPredicate(C.EXPRESSION, objx, gen, falseLabel);
