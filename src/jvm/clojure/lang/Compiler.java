@@ -14,9 +14,9 @@ package clojure.lang;
 
 //*
 
-import clojure.asm.*;
-import clojure.asm.commons.GeneratorAdapter;
-import clojure.asm.commons.Method;
+import org.objectweb.asm.*;
+import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.commons.Method;
 import java.lang.invoke.*;
 import java.io.*;
 import java.lang.reflect.Constructor;
