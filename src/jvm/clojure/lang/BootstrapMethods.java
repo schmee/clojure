@@ -78,11 +78,11 @@ public class BootstrapMethods {
 	    return KeywordInvokeCallSite.create(k);
 	}
 
-    public static CallSite reflectionCache(MethodHandles.Lookup lk, String methodName, MethodType t, String reflectName) {
-	    return new ReflectionCallSite(reflectName);
+    public static CallSite createInstanceReflectionCache(MethodHandles.Lookup lk, String methodName, MethodType t, String reflectName) {
+	    return ReflectionCallSite.createInstanceCache(reflectName);
     }
 
-    public static CallSite reflectionCacheStatic(MethodHandles.Lookup lk, String methodName, MethodType t, String reflectName) {
+    public static CallSite createStaticReflectionCache(MethodHandles.Lookup lk, String methodName, MethodType t, String reflectName) {
 	    return ReflectionCallSite.createStaticCache(reflectName);
     }
 }
