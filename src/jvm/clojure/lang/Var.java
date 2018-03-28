@@ -18,6 +18,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.MutableCallSite;
+import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -95,7 +96,7 @@ volatile boolean dynamic = false;
 transient final AtomicBoolean threadBound;
 public final Symbol sym;
 public final Namespace ns;
-private VarCallSite cs;
+public volatile VarCallSite cs;
 // public boolean printAccess = false;
 
 // public boolean setPrintAccess() {
@@ -313,7 +314,8 @@ synchronized void swapRoot(Object root){
 synchronized public void unbindRoot(){
   Object unbound = new Unbound(this);
 	this.root = unbound;
-  cs.replaceRoot(unbound);
+  if (cs != null)
+    cs.replaceRoot(unbound);
 }
 
 synchronized public void commuteRoot(IFn fn) {

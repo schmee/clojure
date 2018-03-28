@@ -22,7 +22,7 @@ public final class BootstrapMethods {
     }
   }
 
-  public static final class VarCallSite extends MutableCallSite {
+  public static class VarCallSite extends MutableCallSite {
     public VarCallSite(MethodType t) {
         super(t);
     }
@@ -43,8 +43,11 @@ public final class BootstrapMethods {
     }
   }
 
-  public static CallSite varExpr(MethodHandles.Lookup lk, String methodName, MethodType t, String varNs, String varName) {
+  public static synchronized CallSite varExpr(MethodHandles.Lookup lk, String methodName, MethodType t, String varNs, String varName) {
     Var var = RT.var(varNs, varName);
+    if (var.cs != null)
+      return var.cs;
+
     VarCallSite cs = new VarCallSite(methodType(Object.class));
     var.setCallSite(cs);
     Object v = var.getRawRoot();
@@ -53,13 +56,27 @@ public final class BootstrapMethods {
     return cs;
   }
 
-  public static CallSite dynamicVarExpr(MethodHandles.Lookup lk, String methodName, MethodType t, String varNs, String varName) {
-    Var v = RT.var(varNs, varName);
-    MethodHandle root = Var.ROOT.bindTo(v);
-    MethodHandle cache = Var.DEREF.bindTo(v);
-    MethodHandle test = MethodHandles.foldArguments(ATOMIC_GET, Var.THREAD_BOUND.bindTo(v));
+  public static final class DynVarCallSite extends VarCallSite {
+    public DynVarCallSite(MethodType t) {
+        super(t);
+    }
+
+    public void replaceRoot(Object o) {
+      //
+    }
+  }
+
+  public static synchronized CallSite dynamicVarExpr(MethodHandles.Lookup lk, String methodName, MethodType t, String varNs, String varName) {
+    Var var = RT.var(varNs, varName);
+    if (var.cs != null)
+      return var.cs;
+
+    MethodHandle root = Var.ROOT.bindTo(var);
+    MethodHandle cache = Var.DEREF.bindTo(var);
+    MethodHandle test = MethodHandles.foldArguments(ATOMIC_GET, Var.THREAD_BOUND.bindTo(var));
     MethodHandle guarded = MethodHandles.guardWithTest(test, cache, root);
-    CallSite cs = new MutableCallSite(MethodType.methodType(Object.class));
+    DynVarCallSite cs = new DynVarCallSite(MethodType.methodType(Object.class));
+    var.setCallSite(cs);
     cs.setTarget(guarded);
     return cs;
   }
