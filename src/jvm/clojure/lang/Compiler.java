@@ -1618,7 +1618,7 @@ static class InstanceMethodExpr extends MethodExpr{
 				method.emitClearLocals(gen);
 				}
 	    Handle bsm = getIndyBsm("createInstanceReflectionCache", String.class);
-      String desc = ReflectionCallSite.INSTANCE_TYPE.toMethodDescriptorString();
+      String desc = ReflectionCallSite.Instance.TYPE.toMethodDescriptorString();
       gen.invokeDynamic("createInstanceReflectionCache", desc, bsm, methodName);
 			}
 		if(context == C.STATEMENT)
@@ -1838,7 +1838,7 @@ static class StaticMethodExpr extends MethodExpr{
 				method.emitClearLocals(gen);
 				}
 	    Handle bsm = getIndyBsm("createStaticReflectionCache", String.class);
-      String desc = ReflectionCallSite.STATIC_TYPE.toMethodDescriptorString();
+      String desc = ReflectionCallSite.Static.TYPE.toMethodDescriptorString();
       gen.invokeDynamic("createStaticReflectionCache", desc, bsm, methodName);
 			if(context == C.STATEMENT)
 				gen.pop();
