@@ -2314,6 +2314,8 @@ public static class TryExpr implements Expr{
 						Class c = HostExpr.maybeClass(RT.second(f), false);
 						if(c == null)
 							throw new IllegalArgumentException("Unable to resolve classname: " + RT.second(f));
+						if(!(Throwable.class.isAssignableFrom(c)))
+							throw new IllegalArgumentException("Invalid catch target: " + RT.second(f) + " is not an instance of Throwable");
 						if(!(RT.third(f) instanceof Symbol))
 							throw new IllegalArgumentException(
 									"Bad binding form, expected symbol, got: " + RT.third(f));
