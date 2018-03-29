@@ -116,30 +116,10 @@ public class BootstrapMethods {
       return var.cs;
 
     VarCallSite cs = new VarCallSite(MethodType.methodType(Object.class), varNs, varName);
-    var.setCallSite(cs);
+    var.cs = cs;
     Object v = var.getRawRoot();
     MethodHandle mh = MethodHandles.constant(Object.class, v);
     cs.setTarget(mh);
     return cs;
   }
-
-  public static final class DynVarCallSite extends VarCallSite {
-    public DynVarCallSite(MethodType t, String varNs, String varName) { super(t, varNs, varName); }
-    public void replaceRoot(Object o) { }
-  }
-
-  public static synchronized CallSite dynamicVarExpr(MethodHandles.Lookup lk, String methodName, MethodType t, String varNs, String varName) {
-    Var var = RT.var(varNs, varName);
-    if (var.cs != null)
-      return var.cs;
-
-    MethodHandle root = Var.ROOT.bindTo(var);
-    MethodHandle cache = Var.DEREF.bindTo(var);
-    MethodHandle test = MethodHandles.foldArguments(ATOMIC_GET, Var.THREAD_BOUND.bindTo(var));
-    MethodHandle guarded = MethodHandles.guardWithTest(test, cache, root);
-    DynVarCallSite cs = new DynVarCallSite(MethodType.methodType(Object.class), varNs, varName);
-    var.setCallSite(cs);
-    cs.setTarget(guarded);
-    return cs;
-  }  
 }

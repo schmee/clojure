@@ -3725,8 +3725,9 @@ static class InvokeExpr implements Expr{
 		gen.putStatic(objx.objtype, objx.cachedClassName(siteIndex),CLASS_TYPE); //target
 
 		gen.mark(callLabel); //target
-		objx.emitVar(gen, v);
-		gen.invokeVirtual(VAR_TYPE, Method.getMethod("Object getRawRoot()")); //target, proto-fn
+		// objx.emitVar(gen, v);
+		// gen.invokeVirtual(VAR_TYPE, Method.getMethod("Object getRawRoot()")); //target, proto-fn
+		objx.emitVarValue(gen, v);
 		gen.swap();
 		emitArgsAndCall(1, context,objx,gen);
 		gen.goTo(endLabel);
@@ -4617,11 +4618,13 @@ static public class ObjExpr implements Expr{
 
         if(isDeftype() && RT.booleanCast(RT.get(opts, loadNs))) {
               String nsname = ((Symbol)RT.second(src)).getNamespace();
+              Handle bsm = getIndyBsm("varExpr", String.class, String.class);
               if (!nsname.equals("clojure.core")) {
-                  clinitgen.push("clojure.core");
-                  clinitgen.push("require");
-                  clinitgen.invokeStatic(RT_TYPE, Method.getMethod("clojure.lang.Var var(String,String)"));
-                  clinitgen.invokeVirtual(VAR_TYPE,Method.getMethod("Object getRawRoot()"));
+                  // clinitgen.push("clojure.core");
+                  // clinitgen.push("require");
+                  // clinitgen.invokeStatic(RT_TYPE, Method.getMethod("clojure.lang.Var var(String,String)"));
+                  // clinitgen.invokeVirtual(VAR_TYPE,Method.getMethod("Object getRawRoot()"));
+            	    clinitgen.invokeDynamic("varExpr", "()Ljava/lang/Object;", bsm, "clojure.core", "require");
                   clinitgen.checkCast(IFN_TYPE);
                   clinitgen.push(nsname);
                   clinitgen.invokeStatic(SYMBOL_TYPE, Method.getMethod("clojure.lang.Symbol create(String)"));
@@ -5151,14 +5154,13 @@ static public class ObjExpr implements Expr{
 	}
 
 	final static Method varGetMethod = Method.getMethod("Object get()");
-	final static Method varGetRawMethod = Method.getMethod("Object getRawRoot()");
 
 	public void emitVarValue(GeneratorAdapter gen, Var v){
 		Integer i = (Integer) vars.valAt(v);
 		if(!v.isDynamic())
 			{
-                        Handle bsm = getIndyBsm("varExpr", String.class, String.class);
-                        gen.invokeDynamic("varExpr", "()Ljava/lang/Object;", bsm, v.ns.name.name, v.sym.name);
+      Handle bsm = getIndyBsm("varExpr", String.class, String.class);
+      gen.invokeDynamic("varExpr", "()Ljava/lang/Object;", bsm, v.ns.name.name, v.sym.name);
 			}
 		else
 			{

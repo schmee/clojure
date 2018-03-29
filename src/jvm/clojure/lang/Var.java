@@ -117,10 +117,6 @@ public static void resetThreadBindingFrame(Object frame){
 	dvals.set((Frame) frame);
 }
 
-public void setCallSite(VarCallSite cs) {
-  this.cs = cs;
-}
-
 public Var setDynamic(){
 	this.dynamic = true;
 	return this;
