@@ -1040,7 +1040,7 @@ static public abstract class HostExpr implements Expr, MaybePrimitiveExpr{
 				if(sym.name.indexOf('.') > 0 || sym.name.charAt(0) == '[')
 					c = RT.classForNameNonLoading(sym.name);
 				else
-					{
+				        {
 					Object o = currentNS().getMapping(sym);
 					if(o instanceof Class)
 						c = (Class) o;
@@ -2322,6 +2322,13 @@ public static class TryExpr implements Expr{
 						Symbol sym = (Symbol) RT.third(f);
 						if(sym.getNamespace() != null)
 							throw Util.runtimeException("Can't bind qualified name:" + sym);
+
+						for(int i = 0; i < catches.count(); i++) {
+              Class prev = ((CatchClause)catches.get(i)).c;
+              if (prev.isAssignableFrom(c))
+                throw new IllegalArgumentException(
+                  "Unreachable catch clause: " + prev.getName() + " is equal to or a superclass of " + c.getName());
+            }
 
 						IPersistentMap dynamicBindings = RT.map(LOCAL_ENV, LOCAL_ENV.deref(),
 						                                        NEXT_LOCAL_NUM, NEXT_LOCAL_NUM.deref(),

@@ -100,9 +100,10 @@
        `(let [ex# (try
                     ~form
                     (catch ~class e# e#)
-                    (catch Exception e#
-                      (let [cause# (.getCause e#)]
-                        (if (= ~class (class cause#)) cause# (throw e#)))))]
+                    ~@(when-not (= class Exception)
+                        `(catch Exception e#
+                          (let [cause# (.getCause e#)]
+                            (if (= ~class (class cause#)) cause# (throw e#))))))]
           (is (a-match? ~re (.toString ex#))
               (or ~msg
                   (str "Expected exception that matched " (pr-str ~re)

@@ -10,8 +10,10 @@
 
 (ns clojure.test-clojure.try-catch
   (:use clojure.test)
+  (:require clojure.test_clojure.try_catch.examples)
   (:import [clojure.test ReflectorTryCatchFixture 
-                         ReflectorTryCatchFixture$Cookies]))
+                         ReflectorTryCatchFixture$Cookies]
+           [clojure.test_clojure.try_catch.examples A1 A2]))
 
 (defn- get-exception [expression]
   (try (eval expression)
@@ -37,3 +39,11 @@
   (is (thrown-with-msg? ReflectorTryCatchFixture$Cookies #"Double" (fail 1.0)))
   (is (thrown-with-msg? ReflectorTryCatchFixture$Cookies #"Wrapped"
         (.failWithCause (make-instance) 1.0))))
+
+(deftest try-errors-on-unreachable-catch-clauses
+  (are [s] (thrown-with-msg?
+              clojure.lang.Compiler$CompilerException
+              #"Unreachable catch clause"
+              (eval (read-string s)))
+    "(try (catch Exception e) (catch Exception e))"
+    "(try (catch clojure.test_clojure.try_catch.examples.A1 e) (catch RuntimeException e) (catch clojure.test_clojure.try_catch.examples.A2 e))"))
