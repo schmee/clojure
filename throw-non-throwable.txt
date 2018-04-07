@@ -1,0 +1,34 @@
+In Clojure 1.9, if you throw an object that is not an instance of Throwable, you get the following error message: 
+
+{code}
+user=> (try "asdf" (catch Object o "whatever"))
+
+VerifyError (class: user$eval1432, method: invokeStatic signature: ()Ljava/lang/Object;) catch_type not a subclass of Throwable  java.lang.Class.getDeclaredConstructors0 (Class.java:-2)
+{code}
+
+The error message isn't too bad: it tells you most of what you want to know (except the actual class that you tried to throw). 
+
+But in a not to distant future Clojure might upgrade to Java 1.8 bytecode, and when that happens the error will look like this:
+
+{code}
+user=> (try "asdf" (catch Object o "whatever"))
+
+VerifyError Catch type is not a subclass of Throwable in exception handler 6
+Exception Details:
+  Location:
+    user$eval1444.invokeStatic()Ljava/lang/Object; @6: astore_1
+  Reason:
+    Type 'java/lang/Object' (constant pool 17) is not assignable to 'java/lang/Throwable'
+  Bytecode:
+    0000000: 120d 4ba7 000a 4c12 0f4b a700 032a b0
+  Exception Handler Table:
+    bci [0, 3] => handler: 6
+  Stackmap Table:
+    same_locals_1_stack_item_frame(@6,Object[#17])
+    append_frame(@13,Object[#21])
+  java.lang.Class.getDeclaredConstructors0 (Class.java:-2)
+{code}
+
+To me this looks like an internal compiler error and I don't think it should be exposed to users.
+
+The patch fixes the issue by adding a check at try expr parse time that the thing you are catching is a subclass of Throwable.
